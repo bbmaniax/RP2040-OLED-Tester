@@ -1,22 +1,49 @@
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 #include "Button.h"
 #include "DebugSerial.h"
 #include "GND.h"
+
+#define SSD1306_128x64
+// #define SSD1306_128x32
+// #define SSD1306_96x16
 
 #define BUTTON1_GND_PIN 28
 #define BUTTON1_INPUT_PIN 26
 #define BUTTON2_INPUT_PIN 29
 
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 64
-#define DISPLAY_I2C_ADDRESS 0x3C
-
 GND gnd1(BUTTON1_GND_PIN);
 Button button1(BUTTON1_INPUT_PIN);
 Button button2(BUTTON2_INPUT_PIN);
+
+#if defined(SSD1306_128x64)
+#include <Adafruit_SSD1306.h>
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+#define DISPLAY_I2C_ADDRESS 0x3C
+#define DISPLAY_WHITE SSD1306_WHITE
+#define DISPLAY_BLACK SSD1306_BLACK
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+#endif
+
+#if defined(SSD1306_128x32)
+#include <Adafruit_SSD1306.h>
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 32
+#define DISPLAY_I2C_ADDRESS 0x3C
+#define DISPLAY_WHITE SSD1306_WHITE
+#define DISPLAY_BLACK SSD1306_BLACK
+Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+#endif
+
+#if defined(SSD1306_96x16)
+#include <Adafruit_SSD1306.h>
+#define DISPLAY_WIDTH 96
+#define DISPLAY_HEIGHT 16
+#define DISPLAY_I2C_ADDRESS 0x3C
+#define DISPLAY_WHITE SSD1306_WHITE
+#define DISPLAY_BLACK SSD1306_BLACK
+Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+#endif
 
 typedef enum {
   DISPLAY_PATTERN_LOGO = 0,
@@ -117,7 +144,7 @@ RenderResult renderText() {
 
   display.clearDisplay();
   display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
+  display.setTextColor(DISPLAY_WHITE);
   display.getTextBounds(helloText, 0, 0, &x1, &y1, &w, &h);
   display.setCursor((DISPLAY_WIDTH - w) / 2, (DISPLAY_HEIGHT - h) / 2);
   display.print(helloText);
@@ -134,7 +161,7 @@ RenderResult renderText() {
     if (button1.isClicked()) return RENDER_RESULT_SWITCH_TO_PREVIOUS;
     if (button2.isClicked()) return RENDER_RESULT_SWITCH_TO_NEXT;
 
-    display.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, SSD1306_BLACK);
+    display.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_BLACK);
     display.setCursor(tickerX, (DISPLAY_HEIGHT - h) / 2);
     display.print(tickerText);
     display.display();
@@ -143,7 +170,7 @@ RenderResult renderText() {
 
   display.clearDisplay();
   display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
+  display.setTextColor(DISPLAY_WHITE);
   display.getTextBounds(helloText, 0, 0, &x1, &y1, &w, &h);
   display.setCursor((DISPLAY_WIDTH - w) / 2, (DISPLAY_HEIGHT - h) / 2);
   display.print(helloText);
@@ -159,13 +186,13 @@ RenderResult renderGraphics() {
     if (button1.isClicked()) return RENDER_RESULT_SWITCH_TO_PREVIOUS;
     if (button2.isClicked()) return RENDER_RESULT_SWITCH_TO_NEXT;
 
-    display.drawLine(i, 0, DISPLAY_WIDTH - i, DISPLAY_HEIGHT - 1, SSD1306_WHITE);
-    display.drawLine(0, i, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - i, SSD1306_WHITE);
-    display.drawLine(i, DISPLAY_HEIGHT - 1, DISPLAY_WIDTH - i, 0, SSD1306_WHITE);
-    display.drawLine(DISPLAY_WIDTH - 1, i, 0, DISPLAY_HEIGHT - i, SSD1306_WHITE);
+    display.drawLine(i, 0, DISPLAY_WIDTH - i, DISPLAY_HEIGHT - 1, DISPLAY_WHITE);
+    display.drawLine(0, i, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - i, DISPLAY_WHITE);
+    display.drawLine(i, DISPLAY_HEIGHT - 1, DISPLAY_WIDTH - i, 0, DISPLAY_WHITE);
+    display.drawLine(DISPLAY_WIDTH - 1, i, 0, DISPLAY_HEIGHT - i, DISPLAY_WHITE);
     display.display();
   }
-  display.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, SSD1306_WHITE);
+  display.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_WHITE);
   display.display();
   return RENDER_RESULT_DONE;
 }

@@ -76,6 +76,7 @@ void setup() {
   DEBUG_SERIAL_PRINTLN("--");
 
   gnd1.begin();
+
   button1.begin();
   button2.begin();
 

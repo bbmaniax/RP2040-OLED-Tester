@@ -1,9 +1,4 @@
-/*
-  Button Input Library
-
-  A library for handling button inputs with debouncing
-  and click detection.
-*/
+// Button
 
 #ifndef __BUTTON_H__
 #define __BUTTON_H__
@@ -12,21 +7,26 @@
 
 class Button {
 public:
-  Button(uint8_t pin, unsigned long debounceDelay = 20);
+  Button(uint8_t pin, unsigned long debounceDelay = 20, unsigned long longPressDelay = 1000);
 
-public:
   void begin();
   void update();
+
   bool isPressed();
   bool isClicked();
+  bool isLongPressed();
 
 private:
   uint8_t pin;
+  unsigned long debounceDelay;
+  unsigned long longPressDelay;
+
   bool currentState;
   bool lastState;
   bool lastReading;
   unsigned long lastDebounceTime;
-  unsigned long debounceDelay;
+  unsigned long pressStartTime;
+  bool longPressTriggered;
 };
 
 #endif  // __BUTTON_H__

@@ -1,7 +1,7 @@
 SKETCH ?= RP2040-OLED-Tester.ino
 FQBN ?= rp2040:rp2040:rpipico
 CORES ?= rp2040:rp2040
-LIBS ?= "Adafruit SSD1306"
+LIBS ?= "Adafruit SSD1306" "Adafruit NeoPixel"
 
 BUILD_CONFIG ?= ./arduino-cli.yaml
 BUILD_DIR ?= ./build

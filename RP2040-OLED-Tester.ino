@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include <Adafruit_NeoPixel.h>
+
 #include "Button.h"
 #include "DebugSerial.h"
 
@@ -7,9 +9,11 @@
 // #define SSD1306_128x32
 // #define SSD1306_96x16
 
+#define RGBLED_PIN 16
 #define BUTTON_PIN 29
 
 Button button(BUTTON_PIN);
+Adafruit_NeoPixel rgbled(1, RGBLED_PIN, NEO_GRB + NEO_KHZ800);
 
 #if defined(SSD1306_128x64)
 #include <Adafruit_SSD1306.h>
@@ -65,18 +69,25 @@ RenderFunc renderFunctions[] = {
 };
 
 void setup() {
-  DEBUG_SERIAL_BEGIN(115200);
-  DEBUG_SERIAL_WAIT_FOR();
-  DEBUG_SERIAL_PRINTLN();
-  DEBUG_SERIAL_PRINTLN("--");
+  rgbled.begin();
+  rgbled.setBrightness(127);
+  blink(160, 160, 160, 200);
+
+  Serial.begin(9600);
+  while (!Serial && millis() < 1000) {}
+  Serial.println();
+  Serial.println("--");
+  Serial.println("OLED-Tester (build " + timestamp() + ")");
 
   button.begin();
-
   if (!display.begin(SSD1306_SWITCHCAPVCC, DISPLAY_I2C_ADDRESS)) { DEBUG_SERIAL_PRINTLN("Failed to initialize display!"); }
   display.display();
-
-  DEBUG_SERIAL_PRINTLN("OLED-Tester");
   delay(1000);
+
+  if (digitalRead(BUTTON_PIN) == LOW) {
+    scan(Wire, display);
+    while (digitalRead(BUTTON_PIN) == LOW) {}
+  }
 }
 
 void loop() {
@@ -102,6 +113,66 @@ void loop() {
   }
 
   delay(10);
+}
+
+void blink(uint8_t r, uint8_t g, uint8_t b, unsigned long durationMs) {
+  rgbled.setPixelColor(0, r, g, b);
+  rgbled.show();
+  delay(durationMs);
+  rgbled.setPixelColor(0, 0, 0, 0);
+  rgbled.show();
+  delay(durationMs);
+}
+
+String timestamp() {
+  const char* m = "JanFebMarAprMayJunJulAugSepOctNovDec";
+  char mon[4];
+  int d, y, hh, mm, ss;
+  sscanf(__DATE__, "%3s %d %d", mon, &d, &y);
+  sscanf(__TIME__, "%d:%d:%d", &hh, &mm, &ss);
+  int mo = (strstr(m, mon) - m) / 3 + 1;
+
+  char buf[16];
+  sprintf(buf, "%04d%02d%02d.%02d%02d%02d", y, mo, d, hh, mm, ss);
+  return String(buf);
+}
+
+void scan(TwoWire& wire, Adafruit_SSD1306& display) {
+  DEBUG_SERIAL_PRINTLN("SCANNING");
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.print("SCANNING");
+  display.display();
+  display.setCursor(0, 16);
+
+  uint8_t deviceCount = 0;
+  for (uint8_t address = 1; address < 127; address++) {
+    wire.beginTransmission(address);
+    uint8_t error = wire.endTransmission();
+    if (error == 0) {
+      if (address < 16) DEBUG_SERIAL_PRINT("0");
+      DEBUG_SERIAL_PRINTHEX(address);
+      DEBUG_SERIAL_PRINT(" ");
+      if (deviceCount == 0) {
+        display.clearDisplay();
+        display.setCursor(0, 0);
+      }
+      display.printf("%X ", address);
+      display.display();
+      deviceCount++;
+    }
+    delay(10);
+  }
+
+  if (deviceCount == 0) {
+    DEBUG_SERIAL_PRINTLN("NO DEVICES");
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print("NO DEVICES");
+    display.display();
+  }
 }
 
 RenderResult renderGraphics() {
